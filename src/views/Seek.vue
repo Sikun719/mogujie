@@ -9,9 +9,12 @@
           placeholder="请输入想要搜素的商品"
           input-align="center"
           @click="cmo"
-          @search="clickbox"
           v-model="key"
-        />
+        >
+          <template #action>
+            <div @click="debounceClickTest">搜索</div>
+          </template>
+        </van-search>
       </div>
     </div>
     <div class="box_center">
@@ -57,6 +60,7 @@
 </template>
 
 <script>
+import { debounce } from "../untils/untils.js";
 export default {
   data() {
     return {
@@ -106,14 +110,11 @@ export default {
           localStorage.lsjl = JSON.stringify(this.lsjl);
         });
     },
-    clickbox() {
-      //非空校验
-      if (this.key == "") {
-        this.$toast("搜索不能为空哦！");
-        return;
-      }
-      localStorage.lsjl = JSON.stringify(this.lsjl);
-      // 输入框输入内容搜索
+    //防抖函数
+    debounceClickTest: debounce(function () {
+      this.clickTest(); //调用下面clickTest方法
+    }, 1000),
+    clickTest() {
       this.$netClient
         .search({
           params: {
@@ -123,11 +124,21 @@ export default {
           },
         })
         .then((res) => {
+          console.log(res);
           this.search = [];
           this.search = res.data.data;
           this.lsjl.unshift(this.key);
           localStorage.lsjl = JSON.stringify(this.lsjl);
         });
+    },
+    clickbox() {
+      //非空校验
+      if (this.key == "") {
+        this.$toast("搜索不能为空哦！");
+        return;
+      }
+      localStorage.lsjl = JSON.stringify(this.lsjl);
+      // 输入框输入内容搜索
     },
     //删除单条数据
     del(index) {
